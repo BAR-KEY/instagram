@@ -83,7 +83,7 @@ class MainContent extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Image.network(data[i]['image']),
-                  Text('좋아요 ' + data[i]['likes'].toString(),
+                  Text('좋아요  ${data[i]['likes'].toString()}',
                       style: TextStyle(fontWeight: FontWeight.bold)),
                   Text(data[i]['user'] ?? 'null'),
                   Text(data[i]['content'] ?? 'null'),
