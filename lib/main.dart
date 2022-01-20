@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import "./style.dart" as style;
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:flutter/rendering.dart';
 
 void main() {
   runApp(
@@ -21,6 +22,12 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   var tab = 0;
   var data = [];
+  addData(a) {
+    setState(() {
+      data.add(a);
+    });
+  }
+
   getData() async {
     var result = await http
         .get(Uri.parse('https://codingapple1.github.io/app/data.json'));
@@ -28,7 +35,6 @@ class _MyAppState extends State<MyApp> {
     setState(() {
       data = result2;
     });
-    print(data);
   }
 
   @override
@@ -45,7 +51,7 @@ class _MyAppState extends State<MyApp> {
         IconButton(onPressed: () {}, icon: Icon(Icons.add_box_outlined)),
       ]),
       body: [
-        MainContent(data: data),
+        MainContent(data: data, addData: addData),
       ][tab],
       bottomNavigationBar: BottomNavigationBar(
           showSelectedLabels: false,
@@ -67,26 +73,52 @@ class _MyAppState extends State<MyApp> {
   }
 }
 
-class MainContent extends StatelessWidget {
-  const MainContent({Key? key, this.data}) : super(key: key);
-  final data;
+class MainContent extends StatefulWidget {
+  const MainContent({Key? key, this.data, this.addData}) : super(key: key);
+  final data, addData;
+
+  @override
+  State<MainContent> createState() => _MainContentState();
+}
+
+class _MainContentState extends State<MainContent> {
+  var scroll = ScrollController();
+  var duringGetData = false;
+  moreData() async {
+    var result = await http
+        .get(Uri.parse('https://codingapple1.github.io/app/more1.json'));
+    var result2 = jsonDecode(result.body);
+    widget.addData(result2);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    scroll.addListener(() {
+      print(scroll.position.pixels);
+      if (scroll.position.pixels > 1069) {
+        moreData();
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    if (data.isNotEmpty) {
+    if (widget.data.isNotEmpty) {
       return ListView.builder(
-          itemCount: 3,
+          itemCount: widget.data.length,
+          controller: scroll,
           itemBuilder: (c, i) {
             return Padding(
               padding: const EdgeInsets.all(20.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Image.network(data[i]['image']),
-                  Text('좋아요  ${data[i]['likes'].toString()}',
+                  Image.network(widget.data[i]['image']),
+                  Text('좋아요  ${widget.data[i]['likes'].toString()}',
                       style: TextStyle(fontWeight: FontWeight.bold)),
-                  Text(data[i]['user'] ?? 'null'),
-                  Text(data[i]['content'] ?? 'null'),
+                  Text(widget.data[i]['user'] ?? 'null'),
+                  Text(widget.data[i]['content'] ?? 'null'),
                 ],
               ),
             );
